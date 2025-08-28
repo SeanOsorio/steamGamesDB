@@ -1,72 +1,58 @@
-#  SteamGamesDB - Proyecto de Limpieza de Datos de Steam
+# 🎮 SteamGamesDB - ETL de Steam (Rama `features`)
 
-##  Descripción del Proyecto
+## 📋 Descripción del Proyecto
 
-Este proyecto implementa un sistema de **extracción, limpieza y carga (ETL)** de datos de la plataforma Steam, utilizando como fuente principal el dataset **`steam-200k.csv`**.  
+Este proyecto implementa un sistema de **extracción, limpieza y carga (ETL)** de datos de la plataforma Steam, usando como fuente principal el dataset **`steam-200k.csv`**.  
 
-El sistema está diseñado con una arquitectura modular que permite:
-- La **extracción** de datos desde el CSV original.  
-- La **limpieza automática** mediante reglas de normalización y validación.  
-- La **generación de un dataset limpio** listo para análisis posteriores.  
+En la rama **`features`**, el proyecto evoluciona respecto a la rama `realice` con **mejoras en la limpieza y en la robustez del sistema de extracción**, asegurando que los datos estén en condiciones óptimas para análisis avanzados.
 
 ---
 
-## Estructura del Proyecto
+## 🏗️ Estructura del Proyecto
 
 ```
 steamGamesDB/
 │
-├── main.py                              # Punto de entrada principal (ejecuta el pipeline)
-├── README.md                            # Documentación del proyecto
-├── requirements.txt                     # Dependencias del proyecto
+├── main.py                              # Orquestador ETL (entrada principal)
+├── README.md                            # Documentación de esta rama
+├── requirements.txt                     # Dependencias
 │
-├── config/                              # Configuración central
-│   └── config.py                        # Rutas y parámetros
+├── config/                              # Configuración
+│   └── config.py
 │
-├── Extract/                             # Módulo de extracción
-│   └── steamGamesExtract.py             # Clase Extractor (lee CSV original)
+├── Extract/                             # Extracción de datos
+│   └── steamGamesExtract.py             # Lectura robusta (dtype=str, on_bad_lines=skip)
 │
-├── transform/                           # Módulo de transformación
-│   └── transform_clear.py               # Clase Transformer (limpieza de datos)
+├── transform/                           # Transformación y limpieza
+│   └── transform_clear.py               # Validaciones extra (hours >= 0, normalización)
 │
-├── load/                                # Módulo de carga
-│   └── Load.py                          # Clase Loader (guarda CSV limpio)
+├── load/                                # Carga de datos
+│   └── Load.py
 │
-└── sources/                             # Archivos de datos
+└── sources/                             # Datos
     ├── steam-200k.csv                   # Dataset original
     └── steam-200k.cleaned.csv           # Dataset procesado
 ```
 
 ---
 
-## Instalación y Configuración
+## 🚀 Instalación y Configuración
 
-### Prerrequisitos
-- Python 3.9 o superior
-- pip (gestor de paquetes de Python)
-
-### Instalación
-1. Clona el repositorio y accede a la carpeta:
-```bash
-git clone <URL-del-repo>
-cd steamGamesDB
-```
-
-2. Crea y activa un entorno virtual (opcional pero recomendado):
+1. Crea y activa entorno virtual (opcional, recomendado):  
 ```bash
 python -m venv venv
 source venv/bin/activate   # Linux/Mac
 venv\Scripts\activate      # Windows
 ```
 
-3. Instala las dependencias:
+2. Instala dependencias:  
 ```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-##  Uso del Sistema
+## 💻 Uso del Sistema
 
 ### Ejecución básica
 ```bash
@@ -78,71 +64,51 @@ python3 main.py
 python3 main.py --input sources/steam-200k.csv --output sources/steam-200k.cleaned.csv --report
 ```
 
-La opción `--report` imprime en consola un **reporte de calidad** del dataset limpio (nulos, duplicados, distribución de acciones, etc.).
+---
+
+## 🧹 Mejoras de Limpieza en esta Rama (`features`)
+
+Comparado con la rama `realice`, ahora se incluyen:
+- ✅ **Lectura robusta del CSV** → `dtype=str` y `on_bad_lines="skip"` para evitar errores por líneas corruptas.  
+- ✅ **Validación de `hours`** → se descartan registros con horas negativas.  
+- ✅ **Normalización de acciones** → `Played`, `Buy`, `Purchased` se transforman a `play` o `purchase`.  
+- ✅ **Reporte QA** más claro en consola.  
 
 ---
 
-## 🧹 Sistema de Limpieza de Datos
+## 📊 Dataset de Steam
 
-El proceso de limpieza incluye las siguientes reglas:
-- Normalización de columnas (`user_id`, `game`, `action`, `hours`, `value`)  
-- Conversión de `action` a minúsculas y mapeo de sinónimos (`played → play`, `buy → purchase`)  
-- Conversión de `hours` y `value` a valores numéricos  
-- Eliminación de filas con `user_id` o `game` nulos  
-- Eliminación de registros con `hours < 0`  
-- Eliminación de duplicados  
-
----
-
-## Dataset de Steam
-
-### Información del dataset utilizado
-- **Archivo principal:** `steam-200k.csv`
-- **Registros:** 200,000 filas aproximadas
+- **Archivo:** `steam-200k.csv`  
+- **Registros:** ~200,000  
 - **Campos esperados:**
-  - `user_id` → Identificador del usuario
-  - `game` → Nombre del juego
-  - `action` → Acción del usuario (`play`, `purchase`)
-  - `hours` → Horas jugadas
-  - `value` → Indicador de compra (0/1)
-
-### Calidad de los datos
-- **Valores nulos detectados:** Sí, en varias columnas
-- **Acciones inconsistentes:** Variantes como `Played`, `Buy`  
-- **Después de limpieza:** dataset consistente y normalizado
+  - `user_id`
+  - `game`
+  - `action`
+  - `hours`
+  - `value`
 
 ---
 
-## Funcionalidades Principales
+## 📈 Ejemplo de Resultados
 
-### Clase `Extractor`
-- Lee el CSV original.  
-- Detecta columnas faltantes y las completa con valores nulos.  
+Ejemplo de salida de `--report` en esta rama:
 
-### Clase `Transformer`
-- Aplica reglas de limpieza y validación.  
-- Normaliza `action` y asegura que `hours` ≥ 0.  
-
-### Clase `Loader`
-- Exporta el dataset limpio a CSV.  
-- Opción de exportar también en otros formatos (ej. Parquet en ramas posteriores).  
-
----
-
-## Resultados del Procesamiento
-
-Ejemplo de salida de `--report`:
 ```
 Total filas: 200000
 Nulos en user_id: 0
 Nulos en game: 0
-Duplicados exactos: 145
-Distribución acciones: {'play': 150123, 'purchase': 49877}
+Duplicados exactos: 132
+Distribución acciones: {'play': 150321, 'purchase': 49789}
 ```
-'  
 
 ---
 
-## Licencia
+## 👥 Contribuciones
+
+Las contribuciones son bienvenidas. Por favor, abre un issue antes de proponer cambios significativos.  
+
+---
+
+## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT.  

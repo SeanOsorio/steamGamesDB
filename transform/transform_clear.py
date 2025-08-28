@@ -6,7 +6,7 @@ class Transformer:
     """
     Limpieza para steam-200k:
     - Normaliza columnas y tipos
-    - action en minúsculas + sinónimos comunes
+    - action en minúsculas, sin espacios
     - hours/value a numérico
     - Filtra acciones válidas
     - hours >= 0
@@ -37,34 +37,25 @@ class Transformer:
 
         df = self._prepare(df).copy()
 
-        # Normalizar
         df["user_id"] = df["user_id"].astype(str).str.strip()
         df["game"]    = df["game"].astype(str).str.strip()
         df["action"]  = df["action"].astype(str).str.strip().str.lower()
 
-        # 🔹 Normalización de sinónimos
-        action_map = {
-            "played": "play",
-            "playtime": "play",
-            "buy": "purchase",
-            "bought": "purchase",
-            "purchased": "purchase"
-        }
-        df["action"] = df["action"].replace(action_map)
-
         df["hours"] = pd.to_numeric(df["hours"], errors="coerce")
         df["value"] = pd.to_numeric(df["value"], errors="coerce")
 
-        # Filtrar acciones válidas
+        # Filtro de acciones válidas
         if self.valid_actions:
             df = df[df["action"].isin(self.valid_actions)]
 
-        # Eliminar filas inválidas
+        # Nulos críticos
         df = df.dropna(subset=["user_id", "game"]).copy()
+
+        # hours >= 0
         df["hours"] = df["hours"].fillna(0)
         df = df[df["hours"] >= 0]
 
-        # Duplicados
+        # Duplicados exactos
         df = df.drop_duplicates().reset_index(drop=True)
         return df
 
